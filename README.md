@@ -4,9 +4,7 @@ You can create an afterimage on the website and send it directly.
 ![Image](https://github.com/carcon999/kirakira_bleimage/blob/master/img/helloworld.png)
 
 # 概要
-このソフトウェアは、[kirakira:bit](https://www.switch-science.com/catalog/3923/)を利用して、
-micro:bitを左右に振ると残像が見えるプログラムです。
-ブラウザでお絵かきしたデータを無線（BLE）経由でダイレクトに送ることができます。
+このソフトウェアは、[micro:bit](https://microbit.org/)に40連LEDバー（[kirakira:bit](https://www.switch-science.com/catalog/3923/)）を取り付け、本体を左右に振るとお絵かきした絵が残像現象で見えるプログラムです。ブラウザ（Chrome限定）でお絵かきしたデータを無線（BLE）経由で送ることができます。ただし、残念ながらiPhone,iPadのChromeでは動作しませんのでご注意ください。Windows/Mac/Androidではおおむね動作しますが、動作保障するものではありません。
 
 ![Image](https://github.com/carcon999/kirakira_bleimage/blob/master/img/overview.png)
 
@@ -16,137 +14,43 @@ micro:bitを左右に振ると残像が見えるプログラムです。
 |[micro:bit](https://microbit.org/)|マイクロビット|本体|
 |[kirakira:bit](https://www.switch-science.com/catalog/3923/)|LEDバー|40個の小型LED搭載|
 |電源|PHコネクタ経由で3.7-5V|[リチウムイオンポリマー電池](https://www.switch-science.com/catalog/3118/)がBEST|
-|microUSBケーブル|プログラム書き込み用|Arduino IDEを利用します。※MakeCodeでは動きません。|
+|パソコン|ビルド用|Arduino IDEが動作するパソコン|
+|microUSBケーブル|プログラム書き込み用||
 
 # プログラムの書き込み
-最初にデモ用のプログラムを動作させて、開発環境を整備します。
-こちらの[kirabitDemo](https://github.com/carcon999/kirabitDemo/blob/master/README.md)のプログラムを手順に従って環境構築(書き込み)してください。
-MakeCodeは利用せずに、Arduino IDEの開発環境が必要です。
+開発には、Arduino IDEが必要となります。Arduino IDEが動作するパソコンであればプログラムを書き込むことができます。ただし、一部のライブラリを修正する必要があるので順番に実施してください。
 
-ここからは、上記で残像表示ができた状態＋Arduino IDEのビルド環境が整っている状態とします。
+最初に既に公開済みの開発環境説明で基本的な環境を構築（1.）した上で今回の環境を構築します。ですので、既にkirakira:bit用の開発環境を構築済みの場合はスキップして2.の手順を実施してください。
 
-1. 公開しているkirakira_bleimageのソースコードをダウンロードして任意の場所に解凍します。
-1. kirabitDemoで編集したMMA8653.hとMMA8653.cppを上記解凍先にも配置します。
-1. Adafruitのライブラリを一部編集します。編集の目的は、残像を綺麗に表示させるために残像表示中は、BLEの処理を完全に停止させるために停止処理を付け加えます。
-1. Adafruit_Microbit.hのヘッダーファイルに３つのメソッドを追加します。ライブラリは、Windowsの場合は、通常"C:\Users\ユーザ名\Documents\Arduino\libraries\Adafruit_microbit_Library"に配置されます。
-![Image](https://github.com/carcon999/kirakira_bleimage/blob/master/img/diff.png)
+1. こちらの[kirabitDemo](https://github.com/carcon999/kirabitDemo/blob/master/README.md)のプログラムを手順に従って環境構築(書き込み)してください。
 
-* Adafruit_Microbit_Matrixクラスに、endメソッドと、stopTimerメソッドの２つ
-```c++:Adafruit_Microbit.h
-class Adafruit_Microbit_Matrix : public Adafruit_GFX {
- public:
-  Adafruit_Microbit_Matrix();
-  ~Adafruit_Microbit_Matrix(void);
-  boolean   begin(void);
-// ★メソッド追加
-  void      end(void);      // <- ##### add @carcon999 #####
-```
+2. [こちら](https://github.com/carcon999/kirakira_bleimage/blob/master/Environment.md)が、今回のプログラム環境構築手順になります。少し長いのですが順番に実施してください。
 
-```c++:Adafruit_Microbit.h
- private:
-  void startTimer();
-// ★メソッド追加
-  void stopTimer();      // <- ##### add @carcon999 #####
+# 動作確認と各種操作
 
-  uint8_t matrix_buffer[3][9];
-};
-```
-* Adafruit_Microbitクラスに、endメソッドを１つ追加します。
-```c++:Adafruit_Microbit.h
-class Adafruit_Microbit
-{
- public:
-  Adafruit_Microbit_Matrix matrix;
-  Adafruit_Microbit_BLESerial BTLESerial;
+1. [kirakira:bit](https://www.switch-science.com/catalog/3923/)側へ電源を供給します。コネクタがPHコネクタとなっておりますので、小型のリチウムイオンポリマー電池が適合します。※kirakira:bitには充電機能はありません。実は、PHコネクタはmicro:bit側にも存在しますが、間違ってmicro:bit側へ高い電圧を供給すると壊れる場合があるのでご注意ください。
+![Image](https://github.com/carcon999/kirakira_bleimage/blob/master/img/power.jpg)
 
-  void   begin(void);
-// ★メソッド追加
-  void   end(void);      // <- ##### add @carcon999 #####
+2. 電源のスライドSWをONにし、本体を左右に振ると各国の旗が次々と残像で見えれば、成功です。デフォルトでは11種類の国旗が組み込まれています。[こちら](https://hpgpixer.jp/image_icons/flags.html)のサイトのデータを利用させていただきました。
+![Image](https://github.com/carcon999/kirakira_bleimage/blob/master/img/flag.png)
 
-  uint8_t   getDieTemp(void); 
-};
-```
-5. Adafruit_Microbit.cppのソースファイルを修正します。まず、先ほど追加した３つのメソッドを追加します。
-```c++:Adafruit_Microbit.cpp
-// ★メソッド追加
-void Adafruit_Microbit_Matrix::end(void) {    // <- add @carcon999
-  clear();                                    // <- add @carcon999
-  stopTimer();                                // <- add @carcon999
-}                                             // <- add @carcon999
-```
+3. micro:bitのAボタンを押下すると現在表示中の画像でロックします。再度Aボタンを押下するとロックが解除されます。お気に入りの画像だけを表示したい場合にロックできます。
 
-```c++:Adafruit_Microbit.cpp
-// ★メソッド追加
-void Adafruit_Microbit_Matrix::stopTimer(void)     // <- add @carcon999
-{                                                  // <- add @carcon999
-  NRF_TIMER2->TASKS_STOP = 1; // タイマストップ     // <- add @carcon999
-  NVIC_DisableIRQ(TIMER2_IRQn);                    // <- add @carcon999
-}                                                  // <- add @carcon999
-```
+4. micro:bitのBボタンを短押しすると、本体を振ること無しに連続してLEDを高速点灯します。再度短押しすると解除します。テスト等でご利用ください。
 
-```c++:Adafruit_Microbit.cpp
-// ★メソッド追加
-void Adafruit_Microbit::end(void) {     // <- add @carcon999
-  matrix.end();                         // <- add @carcon999
-}                                       // <- add @carcon999
-```
+5. micro:bitのBボタンを長押しすると、Bluetooth(BLE)の通信モードになります。BLEモード中は、micro:bit本体の5x5マトリックス表示で通信状態を表示します。※BLEモード中は、LEDバーは点灯しません。通信モードの解除は、Aボタンを短押しすると解除されます。
+![Image](https://github.com/carcon999/kirakira_bleimage/blob/master/img/blemode.png)
 
-6. Adafruit_Microbit.cppのソースファイルで３つのメソッドを修正します。
-```c++:Adafruit_Microbit.cpp
-Adafruit_Microbit_BLESerial::Adafruit_Microbit_BLESerial(unsigned char req, unsigned char rdy, unsigned char rst) :
-  BLEPeripheral(req, rdy, rst)
-{
-  this->_txCount = 0;
-  this->_rxHead = this->_rxTail = 0;
-  this->_flushed = 0;
-  Adafruit_Microbit_BLESerial::_instance = this;
+# BLEモードでの画像転送方法
 
-  addAttribute(this->_uartService);
-  addAttribute(this->_uartNameDescriptor);
-  setAdvertisedServiceUuid(this->_uartService.uuid());
-  addAttribute(this->_rxCharacteristic);
-  addAttribute(this->_rxNameDescriptor);
-// ★↓１行コメントアウト
-//this->_rxCharacteristic.setEventHandler(BLEWritten, Adafruit_Microbit_BLESerial::_received);  // -> move @carcon999
-  addAttribute(this->_txCharacteristic);
-  addAttribute(this->_txNameDescriptor);
-}
-```
+1. 表示したい画像を準備します。[こちら](https://s3-ap-northeast-1.amazonaws.com/microbitble/imagecanvas.html)でお絵かきとそのデータを送ることができます。Chromeのブラウザでのみ動作します。Windows/Mac/Androidで動作確認しています。残念ながらiPhone/iPadは動作しませんのでご注意ください。
+1. お絵かきが完了したら、micro:bitのBボタンを長押し、BLEモードにします。内部の状態としては、相手側からの接続待ちの状態となります。
+1. Webサイトの「データ送信」ボタンを押下します。ペア設定を要求するダイアログが表示されますので、「kirakirabit」を選択し、「ペア設定」ボタンを押下します。
+1. Webサイトのプログレスバーが転送状態を表示し、micro:bitの5x5LEDもドットで進捗状態を表示します。
+1. 100%になることで、転送が完了しBLEモードも自動的に解除されます。本体を左右に振るとお絵かきした画像が表示されます。
+　※もし、上手くできない場合は、micro:bit側の電源を一度OFF->ONしてから、2.の手順からやり直してください。
 
-```c++:Adafruit_Microbit.cpp
-void Adafruit_Microbit_BLESerial::begin(...) {
-// ★４行追加
-  this->_txCount = 0;                                                                           // <- add @carcon999
-  this->_rxHead = this->_rxTail = 0;                                                            // <- add @carcon999
-  this->_flushed = 0;                                                                           // <- add @carcon999
-  this->_rxCharacteristic.setEventHandler(BLEWritten, Adafruit_Microbit_BLESerial::_received);  // <- add @carcon999
-  
-  BLEPeripheral::begin();
-  #ifdef BLE_SERIAL_DEBUG
-    Serial.println(F("Adafruit_Microbit_BLESerial::begin()"));
-  #endif
-}
-```
-
-```c++:Adafruit_Microbit.cpp
-void Adafruit_Microbit_BLESerial::end() {
-  this->_rxCharacteristic.setEventHandler(BLEWritten, NULL);
-  this->_rxHead = this->_rxTail = 0;
-  flush();
-  BLEPeripheral::disconnect();
-
-// ★１行追加
-  BLEPeripheral::end();         // <- add @carcon999
-}
-```
+以上
 
 
-公開されているソースコードをダウンロードして、ビルドします。
-必要なライブラリ等は、先の[kirabitDemo](https://github.com/carcon999/kirabitDemo/blob/master/README.md)でインストール済みです
-
-
-# Chrome用公開サイト
-下記のURLから試すことができます。
-Chromeを利用してください。
-https://s3-ap-northeast-1.amazonaws.com/microbitble/imagecanvas.html
 
