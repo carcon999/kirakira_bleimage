@@ -1,6 +1,5 @@
 #include "kirabit.h"
 #include "arduino.h"
-#include "MMA8653.h"
 #include "mode_ble.h"
 #include "drv_ledbar.h"
 #include "drv_beep.h"
@@ -8,14 +7,12 @@
 #include "drv_key.h"
 #include "mode_afterimg.h"
 #include "test_image.h"
+#include "drv_accel.h"
 
 using namespace kirabit;
 
 // global instance
 kirabit::ModeAfterimg MODE_AFTERIMG;
-
-MMA8653 accel;
-
 
 ModeAfterimg::ModeAfterimg()
 {
@@ -23,8 +20,7 @@ ModeAfterimg::ModeAfterimg()
 
 void ModeAfterimg::setup(void)
 {
-  Wire.begin();
-  accel.begin(false, 2, 3);
+  ACCEL.setup();
 
   LEDBAR.setup(DEF_LED_NUM, DEF_LED_PIN);
 
@@ -54,44 +50,24 @@ void ModeAfterimg::imglock(bool value)
 
 void ModeAfterimg::main_accel(void)
 {
-  accel.update();
-  int x = accel.getX();
-
-  // 前回値との差分を見てベクトル方向が反転したらトリガーとする。
-  int sub = last_x - x;
-  int power = abs(sub);
-
-  // ある程度の力がある場合のみ有効
-  if(power > 7){
-    int dir = 0;
-    // 前回は、正方向だったが今回負方向に変化した場合
-    if(last_dir >= 0 && sub < 0){
-      dir = 1;
-    // 前回は、負方向だったが今回正方向に変化した場合
-    }else if(last_dir < 0 && sub >= 0){
-      dir = -1;
-    }
-
-    if(dir != 0)
-    {
+  int dir = ACCEL.get_dir();
+  
+  if(dir != 0)
+  {
 #ifdef DEBUG_SERIAL_ON
-      Serial.println(dir);
+    Serial.println(dir);
 #endif
-      LEDBAR.draw(dir);
-      BEEP.tone(1047, 25);
-      last_dir = sub;
-
-      counter++;
-      if(counter >= 10){
-        if(!lock){
-          nextimage();
-        }
-        counter = 0;
+    LEDBAR.draw(dir);
+    BEEP.tone(1047, 25);
+    
+    counter++;
+    if(counter >= 10){
+      if(!lock){
+        nextimage();
       }
+      counter = 0;
     }
   }
-
-  last_x = x;  
 }
 
 void ModeAfterimg::main_continue(void)
@@ -140,4 +116,3 @@ void ModeAfterimg::nextimage(void)
 
   //LEDBAR.setImageString(&str0[0][0], STR_WIDTH);
 }
-
